@@ -1,0 +1,32 @@
+# docker-compose.yml
+version: "3.3"
+services:
+   webinterface:
+      build:
+         context: ./WebInterface/
+         dockerfile: Dockerfile
+      hostname: webinterface
+#      env_file: ./subversionedge/.env
+      volumes:
+         - ./db-data:/app/instance
+      ports:
+         - 8000:8000
+   backgroundcan:
+      build: 
+         context: ./BackgroundCAN/
+         dockerfile: Dockerfile
+      hostname: backgroundcan
+      devices:
+         - /dev/null:/dev/can0:rwm
+      tty: true
+      ports:
+         - 9000:9000
+   phpliteadmin:
+      build: 
+         context: ./phpLiteAdmin/
+         dockerfile: Dockerfile
+      hostname: phpliteadmin
+      volumes:
+         - ./db-data:/db
+      ports:
+         - 2015:2015

@@ -1,0 +1,12 @@
+[Unit]
+Description=CSVN Automatic Starter Timer
+
+[Timer]
+OnBoot=30s
+#OnCalendar=*:0/5
+Persistent=true
+Unit=csvnautostarter.service
+
+[Install]
+WantedBy=timers.target
+
