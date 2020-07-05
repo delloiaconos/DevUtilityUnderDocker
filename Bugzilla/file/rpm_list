@@ -1,0 +1,16 @@
+expat-devel
+gcc
+gcc-c++
+gd-devel
+git
+httpd-devel
+make
+mod_perl
+mysql-community-devel
+openssl
+openssl-devel
+perl-core
+postgresql-devel
+postgresql-server
+python-devel
+python-pip
