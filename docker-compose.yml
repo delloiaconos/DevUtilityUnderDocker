@@ -1,32 +1,37 @@
 # docker-compose.yml
 version: "3.3"
 services:
-   webinterface:
+   openldap:
       build:
-         context: ./WebInterface/
+         context: ./OpenLDAP/
          dockerfile: Dockerfile
-      hostname: webinterface
+      hostname: openldap
+      environment:
+         - LDAP_ORGANISATION="My Company" 
+         - LDAP_DOMAIN="my-company.com"
+         - LDAP_ADMIN_PASSWORD="JonSn0w"
+   phpldapadmin:
+      build: 
+         context: ./phpLDAPAdmin/
+         dockerfile: Dockerfile
+      hostname: phpldapadmin
+      ports:
+         - 8080:8080
+   subversionedge:
+      build:
+         context: ./SubversionEdge/
+         dockerfile: Dockerfile
+      hostname: subversionedge
 #      env_file: ./subversionedge/.env
       volumes:
          - ./db-data:/app/instance
       ports:
-         - 8000:8000
-   backgroundcan:
-      build: 
-         context: ./BackgroundCAN/
+         - 3343:3343
+         - 4434:4434
+         - 18080:18080
+   bugzilla:
+      build:
+         context: ./Bugzilla/
          dockerfile: Dockerfile
-      hostname: backgroundcan
-      devices:
-         - /dev/null:/dev/can0:rwm
-      tty: true
-      ports:
-         - 9000:9000
-   phpliteadmin:
-      build: 
-         context: ./phpLiteAdmin/
-         dockerfile: Dockerfile
-      hostname: phpliteadmin
-      volumes:
-         - ./db-data:/db
-      ports:
-         - 2015:2015
+      hostname: bugzilla
+         
