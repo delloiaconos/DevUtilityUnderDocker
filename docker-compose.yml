@@ -1,37 +1,122 @@
-# docker-compose.yml
-version: "3.3"
+version: "3.1"
+
 services:
-   openldap:
-      build:
-         context: ./OpenLDAP/
-         dockerfile: Dockerfile
-      hostname: openldap
-      environment:
-         - LDAP_ORGANISATION="My Company" 
-         - LDAP_DOMAIN="my-company.com"
-         - LDAP_ADMIN_PASSWORD="JonSn0w"
-   phpldapadmin:
-      build: 
-         context: ./phpLDAPAdmin/
-         dockerfile: Dockerfile
-      hostname: phpldapadmin
-      ports:
-         - 8080:8080
-   subversionedge:
-      build:
-         context: ./SubversionEdge/
-         dockerfile: Dockerfile
-      hostname: subversionedge
-#      env_file: ./subversionedge/.env
-      volumes:
-         - ./db-data:/app/instance
-      ports:
-         - 3343:3343
-         - 4434:4434
-         - 18080:18080
-   bugzilla:
-      build:
-         context: ./Bugzilla/
-         dockerfile: Dockerfile
-      hostname: bugzilla
-         
+
+  subversion-service:
+    build:
+       dockerfile: Dockerfile
+       context: ./SubversionEdge/
+    container_name: subversion-service
+    hostname: subversion-host
+    restart: always
+    links: 
+      - "ldap-service:ldap-host"
+    volumes:
+      - "${BASEPATH}/svndata:/opt/csvn/data"
+    ports:
+      - 3343:3343
+      - 4434:4434
+      - 18080:18080
+    networks:
+      - backend
+      - frontend
+
+  ldapadmin-service:
+     image: osixia/phpldapadmin:0.9.0 
+     build:
+       context: .
+     container_name: ldapadmin-service
+     hostname: ldapadmin-host
+     restart: always
+     links:
+       - "ldap-service:ldap-host"
+     environment:
+       - PHPLDAPADMIN_LDAP_HOSTS=ldap-host
+       - PHPLDAPADMIN_HTTPS=false
+     ports:
+       - 4040:80
+#       - 443:443
+     networks:
+       - frontend
+       - backend
+  
+  ldappasswd-service:
+    build:
+      context: ./SelfServicePassword/
+      dockerfile: Dockerfile
+    container_name: ldappasswd-service
+    hostname: ldappasswd-host
+    restart: always
+    links:
+      - "ldap-service:ldap-host"
+    volumes:
+      - "${BASEPATH}/ldappasswd:/var/www/conf"
+    ports:
+      - 9090:80
+    networks:
+      - frontend
+      - backend
+
+  ldap-service:
+    image: osixia/openldap:1.4.0
+    build:
+      context: .
+    container_name: ldap-service
+    hostname: ldap-host
+    restart: always
+    volumes:
+      - "${BASEPATH}/ldap-db:/var/lib/ldap"
+      - "${BASEPATH}/ldap-conf:/etc/ldap/slapd.d"
+    environment:
+      - LDAP_ORGANISATION=Example
+      - LDAP_DOMAIN=example.org 
+      - LDAP_ADMIN_PASSWORD=password
+    networks:
+      - backend
+
+  bugzilla-service:
+     image: herzcthu/bugzilla:latest
+     build:
+       context: .
+     container_name: bugzilla
+     volumes:
+       - "${BASEPATH}/bugzilla:/usr/local/apache2/htdocs/localconfig"
+     ports:
+       - 8080:80
+#      - 5900:5900
+     links:
+       - mysql-service
+       - ldap-service
+     restart: always
+     networks:
+       - frontend
+       - backend
+
+  mysql-service:
+     image: mysql:5.7
+     command: --default-authentication-plugin=mysql_native_password
+     volumes:
+       - "${BASEPATH}/mysql:/var/lib/mysql"
+     environment:
+       - MYSQL_ROOT_PASSWORD=root
+       - MYSQL_DATABASE=bugs
+       - MYSQL_USER=bugs
+       - MYSQL_PASSWORD=bugs
+     restart: always
+     networks:
+       - backend
+
+networks:
+  frontend:
+    driver: ${NETWORKS_DRIVER:-bridge}
+    ipam:
+      driver: default
+      config:
+      - subnet:  ${FRONTEND_SUBNET:-192.168.168.0/25}
+
+  backend:
+    driver: ${NETWORKS_DRIVER:-bridge}
+    ipam:
+      driver: default
+      config:
+      - subnet: ${BACKEND_SUBNET:-192.168.168.128/25}
