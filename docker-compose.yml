@@ -2,8 +2,9 @@ version: "3.1"
 
 services:
 
+# SUBVERSION SERVICE: Subversion EDGE 
   subversion-service:
-    build:
+    build: 
        dockerfile: Dockerfile
        context: ./SubversionEdge/
     container_name: subversion-service
@@ -21,6 +22,7 @@ services:
       - backend
       - frontend
 
+# LDAPADMIN SERVICE - php LDAP Admin v0.9.0
   ldapadmin-service:
      image: osixia/phpldapadmin:0.9.0 
      container_name: ldapadmin-service
@@ -37,7 +39,8 @@ services:
      networks:
        - frontend
        - backend
-  
+
+# LDAPPASSWD SERVICE - LDAP Self Service Password   
   ldappasswd-service:
     build:
       context: ./SelfServicePassword/
@@ -48,13 +51,15 @@ services:
     links:
       - "ldap-service:ldap-host"
     volumes:
-      - "${BASEPATH}/ldappasswd:/var/www/conf"
+      - "${BASEPATH}/ldappasswd/conf:/var/www/conf"
+      - "${BASEPATH}/ldappasswd/images:/var/www/html/images"
     ports:
       - 9090:80
     networks:
       - frontend
       - backend
 
+# LDAP SERVICE - Open LDAP v 1.4.0 [Backend]       
   ldap-service:
     image: osixia/openldap:1.4.0
     container_name: ldap-service
@@ -70,10 +75,9 @@ services:
     networks:
       - backend
 
+# BUGZILLA SERVICE - Bugzilla
   bugzilla-service:
      image: herzcthu/bugzilla:latest
-     build:
-       context: .
      container_name: bugzilla-service
      hostname: bugzilla-host
      volumes:
@@ -89,10 +93,9 @@ services:
        - frontend
        - backend
 
+# MYSQL SERVICE - MySQL v 5.7 [Backend]         
   mysql-service:
      image: mysql:5.7
-     build:
-       context: .
      container_name: mysql-service
      hostname: mysql-host
      command: --default-authentication-plugin=mysql_native_password
