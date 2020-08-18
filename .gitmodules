@@ -1,4 +1,4 @@
 [submodule "SelfServicePassword"]
 	path = SelfServicePassword
 	url = https://github.com/ltb-project/self-service-password.git
-	branch = tags/v1.3
+	branch = Tags/v1.3
