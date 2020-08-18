@@ -78,15 +78,16 @@ services:
      image: herzcthu/bugzilla:latest
      build:
        context: .
-     container_name: bugzilla
+     container_name: bugzilla-service
+     hostname: bugzilla-host
      volumes:
-       - "${BASEPATH}/bugzilla:/usr/local/apache2/htdocs/localconfig"
+       - "${BASEPATH}/bugzilla/localconfig:/usr/local/apache2/htdocs/localconfig"
      ports:
        - 8080:80
-#      - 5900:5900
+#       - 5900:5900
      links:
-       - mysql-service
-       - ldap-service
+       - "mysql-service:mysql"
+       - "ldap-service:ldap-host"
      restart: always
      networks:
        - frontend
@@ -94,6 +95,10 @@ services:
 
   mysql-service:
      image: mysql:5.7
+     build:
+       context: .
+     container_name: mysql-service
+     hostname: mysql-host
      command: --default-authentication-plugin=mysql_native_password
      volumes:
        - "${BASEPATH}/mysql:/var/lib/mysql"
