@@ -14,7 +14,8 @@ It includes also:
 ## Install
 Get repository via git (user recursive option), apply your settings and run start.sh
 
+```
 git clone --recursive https://github.com/delloiaconos/DevUtilityUnderDocker.git DevUtility
 cd DevUtility
 bash start.sh
-
+```
